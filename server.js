@@ -43,29 +43,34 @@ app.post("/gpa", async (req, res) => {
     credits: totalWeight,
     GPA: gpa,
     grades: student.grades,
-    pdfFile: null,
   };
-  if (student.isPDF) {
-    try {
-      const genPdfUrl = process.env.GENERATE_PDF_URL || "http://localhost:5000";
-      const pdfResponse = await axios.post(
-        genPdfUrl + "/generate-pdf/grade-calculator",
-        result,
-        {
-          responseType: "arrayBuffer", // Specify responseType as 'arraybuffer' to receive binary data
-        }
-        // Add other data needed for PDF generation
-      );
-      result.pdfFile = pdfResponse.data
+  // if (student.isPDF) {
+  //   try {
+  //     const genPdfUrl = process.env.GENERATE_PDF_URL || "http://localhost:5000";
+  //     const pdfResponse = await axios.post(
+  //       genPdfUrl + "/generate-pdf/grade-calculator",
+  //       result,
+  //       {
+  //         responseType: "arraybuffer", // Specify responseType as 'arraybuffer' to receive binary data
+  //       }
+  //       // Add other data needed for PDF generation
+  //     );
+  //     result.pdfFile = pdfResponse.data;
+  //     // res.setHeader("Content-Type", "application/pdf");
+  //     // res.setHeader(
+  //     //   "Content-Disposition",
+  //     //   "attachment; filename=your_downloaded_pdf.pdf"
+  //     // );
 
-      res.send(result);
-    } catch (error) {
-      console.error("Error generating PDF:", error.message);
-      res.status(500).json({ error: "Error generating PDF" });
-    }
-  } else {
-    res.json(result);
-  }
+  //     res.send(result);
+  //   } catch (error) {
+  //     console.error("Error generating PDF:", error.message);
+  //     res.status(500).json({ error: "Error generating PDF" });
+  //   }
+  // } else {
+  //   res.json(result);
+  // }
+  res.json(result);
 });
 
 // Helper function to convert letter grades to grade points
