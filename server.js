@@ -1,34 +1,89 @@
 const express = require("express");
-const cors = require("cors");require("dotenv").config();
+const cors = require("cors");
+require("dotenv").config();
+const axios = require("axios");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 5000;
 
-app.get("/gpa", (req, res) => {
-  const data = req.body;
-  // Check if the request body is an array of objects
-  if (!Array.isArray(data) || data.length === 0) {
-    return res.status(400).json({ error: "Invalid input. Please send an array of objects." });
+app.post("/gpa", async (req, res) => {
+  const student = req.body;
+
+  // Check if the request body is an object with the expected properties
+  if (
+    !student ||
+    typeof student !== "object" ||
+    !student.grades ||
+    !Array.isArray(student.grades)
+  ) {
+    return res.status(400).json({
+      error:
+        "Invalid input. Please send a valid student object with an array of grades.",
+    });
   }
 
   let totalWeight = 0;
   let totalGradePoints = 0;
 
-  // Iterate through the array and calculate the total grade points and total weight
-  data.forEach(item => {
-    if (typeof item[0] === 'number' && typeof item[1] === 'number') {
-      totalGradePoints += item[0] * item[1];
-      totalWeight += item[1];
+  // Iterate through the grades array and calculate the total grade points and total weight
+  student.grades.forEach((grade) => {
+    if (typeof grade.credit === "number" && typeof grade.grade === "string") {
+      const gradePoints = convertGradeToPoints(grade.grade);
+      totalGradePoints += gradePoints * grade.credit;
+      totalWeight += grade.credit;
     }
   });
 
   // Calculate the GPA
   const gpa = totalWeight > 0 ? totalGradePoints / totalWeight : 0;
-
-  res.json({ gpa });
+  const result = {
+    name: student.name,
+    credits: totalWeight,
+    GPA: gpa,
+    grades: student.grades,
+  };
+  if (student.isPDF) {
+    try {
+      // const pdfResponse = await axios.post("/generate-pdf/grade-calculator", {
+      //   result,
+      //   // Add other data needed for PDF generation
+      // });
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating PDF:", error.message);
+      res.status(500).json({ error: "Error generating PDF" });
+    }
+  } else {
+    res.json(result);
+  }
 });
+
+// Helper function to convert letter grades to grade points
+function convertGradeToPoints(grade) {
+  // You can customize this function based on your grading scale
+  switch (grade) {
+    case "A":
+      return 4.0;
+    case "B+":
+      return 3.5;
+    case "B":
+      return 3.0;
+    case "C+":
+      return 2.5;
+    case "C":
+      return 2.0;
+    case "D+":
+      return 1.5;
+    case "D":
+      return 1.0;
+    case "F":
+      return 0.0;
+    default:
+      return 0.0; // default to 0.0 for unknown grades
+  }
+}
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
