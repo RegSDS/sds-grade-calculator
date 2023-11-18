@@ -52,7 +52,7 @@ app.post("/gpa", async (req, res) => {
         genPdfUrl + "/generate-pdf/grade-calculator",
         result,
         {
-          responseType: "blob", // Specify responseType as 'arraybuffer' to receive binary data
+          responseType: "arrayBuffer", // Specify responseType as 'arraybuffer' to receive binary data
         }
         // Add other data needed for PDF generation
       );
