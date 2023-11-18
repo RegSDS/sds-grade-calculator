@@ -6,7 +6,7 @@ const axios = require("axios");
 const app = express();
 app.use(cors());
 app.use(express.json());
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 app.post("/gpa", async (req, res) => {
   const student = req.body;
@@ -38,19 +38,27 @@ app.post("/gpa", async (req, res) => {
 
   // Calculate the GPA
   const gpa = totalWeight > 0 ? totalGradePoints / totalWeight : 0;
-  const result = {
+  let result = {
     name: student.name,
     credits: totalWeight,
     GPA: gpa,
     grades: student.grades,
+    pdfFile: null,
   };
   if (student.isPDF) {
     try {
-      // const pdfResponse = await axios.post("/generate-pdf/grade-calculator", {
-      //   result,
-      //   // Add other data needed for PDF generation
-      // });
-      res.json(result);
+      const genPdfUrl = process.env.GENERATE_PDF_URL || "http://localhost:5000";
+      const pdfResponse = await axios.post(
+        genPdfUrl + "/generate-pdf/grade-calculator",
+        result,
+        {
+          responseType: "arraybuffer", // Specify responseType as 'arraybuffer' to receive binary data
+        }
+        // Add other data needed for PDF generation
+      );
+      result.pdfFile = pdfResponse.data
+
+      res.send(result);
     } catch (error) {
       console.error("Error generating PDF:", error.message);
       res.status(500).json({ error: "Error generating PDF" });
