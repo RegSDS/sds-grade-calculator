@@ -10,6 +10,10 @@ app.use(cors());
 app.use(bodyParser.json());
 const port = process.env.PORT || 5001;
 
+app.get("/healthy", (req, res) => {
+  return res.status(200).json();
+});
+
 app.post("/gpa", async (req, res) => {
   const student = req.body;
 
